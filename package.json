@@ -1,0 +1,25 @@
+{
+  "name": "mybinder.term",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "xterm": "^4.8.1",
+    "xterm-addon-attach": "^0.6.0",
+    "xterm-addon-fit": "^0.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuvipanda/mybinder.term.git"
+  },
+  "author": "",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/yuvipanda/mybinder.term/issues"
+  },
+  "homepage": "https://github.com/yuvipanda/mybinder.term#readme"
+}
