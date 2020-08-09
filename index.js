@@ -1,40 +1,31 @@
 // Don't need $.ready(). Putting <script> at bottom of file has same effect!
 /**
- * Return a websocket connecting to terminal 1 on a notebook server
+ * Return a URL pointing to a websocket handler speaking the terminado protocol.
  *
- * If terminal 1 is not already running in the notebook server, we start it
- * first before making a websocket connection.
+ * Should ideally be done once per page load, and this terminal can be reused
+ * on disconnects.
  *
  * @param {String} notebookUrl Full URL to notebook server
  * @param {String} token Authentication token for talking to the notebook server
  */
-async function getWebsocket(notebookUrl, token) {
-    // FIXME: Start a new terminal only if we don't already have one
+async function getTerminadoUrl(notebookUrl, token) {
     const url = new URL('/api/terminals', notebookUrl);
     const headers = {
         'Authorization': 'token ' + token
     }
 
-    const curTerminals = await (await fetch(url, {headers: headers})).json();
-    let terminalName;
-    if (curTerminals.length) {
-        // Get terminal 1
-        terminalName = curTerminals[0].name;
-    } else {
-        const resp = await fetch(url, {
-            method: 'POST',
-            headers: headers
-        });
+    const resp = await fetch(url, {
+        method: 'POST',
+        headers: headers
+    });
 
-        const data = await resp.json();
-        terminalName = data.name;
-    }
+    const data = await resp.json();
+    const terminalName = data.name;
 
     let socketUrl = new URL('/terminals/websocket/' + terminalName + '?token=' + token, notebookUrl);
     // Get ws or wss url from http or https url
     socketUrl.protocol = socketUrl.protocol == 'https' ? 'wss' : 'ws';
-
-    return new WebSocket(socketUrl);
+    return socketUrl;
 }
 
 
@@ -52,7 +43,8 @@ async function main() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const notebookUrl = urlParams.get('notebookUrl');
-    const socket = await getWebsocket(notebookUrl, token)
+    const terminadoUrl = await getTerminadoUrl(notebookUrl, token);
+    const socket = new WebSocket(terminadoUrl);
 
     socket.addEventListener('open', (ev) => {
         console.log('Websocket connection started')
