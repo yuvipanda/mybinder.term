@@ -1,8 +1,7 @@
 // Don't need $.ready(). Putting <script> at bottom of file has same effect!
-
 async function getWebsocket(notebook_url, token) {
     // FIXME: Start a new terminal only if we don't already have one
-    const url = notebook_url + '/api/terminals';
+    const url = new URL('/api/terminals', notebook_url);
     const headers = {
         'Authorization': 'token ' + token
     }
@@ -22,9 +21,9 @@ async function getWebsocket(notebook_url, token) {
         terminalName = data.name;
     }
 
-    let socketUrl = notebook_url + '/terminals/websocket/' + terminalName + '?token=' + token;
+    let socketUrl = new URL('/terminals/websocket/' + terminalName + '?token=' + token, notebook_url);
     // Get ws or wss url from http or https url
-    socketUrl = socketUrl.replace(/^http(s)?:\/\//, 'ws$1://');
+    socketUrl.protocol = socketUrl.protocol == 'https' ? 'wss' : 'ws';
 
     return new WebSocket(socketUrl);
 }
