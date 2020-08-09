@@ -36,8 +36,11 @@ async function main() {
     term.open(document.getElementById('terminal'));
     term.loadAddon(fitAddon);
 
-    const token = '334240b965232183689672c1bf35516d3c34f68b480b38f7';
-    const socket = await getWebsocket('http://192.168.1.150:8888', token)
+    // Fetch connection parameters from query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const notebookUrl = urlParams.get('notebookUrl');
+    const socket = await getWebsocket(notebookUrl, token)
 
     socket.addEventListener('open', (ev) => {
         console.log('open');
