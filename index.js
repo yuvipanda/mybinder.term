@@ -24,7 +24,7 @@ async function getTerminadoUrl(notebookUrl, token) {
 
     let socketUrl = new URL('/terminals/websocket/' + terminalName + '?token=' + token, notebookUrl);
     // Get ws or wss url from http or https url
-    socketUrl.protocol = socketUrl.protocol == 'https' ? 'wss' : 'ws';
+    socketUrl.protocol = socketUrl.protocol == 'https:' ? 'wss:' : 'ws:';
     return socketUrl;
 }
 
