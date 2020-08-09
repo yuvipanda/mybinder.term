@@ -1,7 +1,16 @@
 // Don't need $.ready(). Putting <script> at bottom of file has same effect!
-async function getWebsocket(notebook_url, token) {
+/**
+ * Return a websocket connecting to terminal 1 on a notebook server
+ *
+ * If terminal 1 is not already running in the notebook server, we start it
+ * first before making a websocket connection.
+ *
+ * @param {String} notebookUrl Full URL to notebook server
+ * @param {String} token Authentication token for talking to the notebook server
+ */
+async function getWebsocket(notebookUrl, token) {
     // FIXME: Start a new terminal only if we don't already have one
-    const url = new URL('/api/terminals', notebook_url);
+    const url = new URL('/api/terminals', notebookUrl);
     const headers = {
         'Authorization': 'token ' + token
     }
@@ -9,7 +18,7 @@ async function getWebsocket(notebook_url, token) {
     const curTerminals = await (await fetch(url, {headers: headers})).json();
     let terminalName;
     if (curTerminals.length) {
-        // FIXME: Uh, let's not hardcode this?
+        // Get terminal 1
         terminalName = curTerminals[0].name;
     } else {
         const resp = await fetch(url, {
@@ -21,7 +30,7 @@ async function getWebsocket(notebook_url, token) {
         terminalName = data.name;
     }
 
-    let socketUrl = new URL('/terminals/websocket/' + terminalName + '?token=' + token, notebook_url);
+    let socketUrl = new URL('/terminals/websocket/' + terminalName + '?token=' + token, notebookUrl);
     // Get ws or wss url from http or https url
     socketUrl.protocol = socketUrl.protocol == 'https' ? 'wss' : 'ws';
 
@@ -29,9 +38,13 @@ async function getWebsocket(notebook_url, token) {
 }
 
 
+/**
+ * Main function since browsers don't support top-level await
+ */
 async function main() {
     let term = new Terminal();
     let fitAddon = new window.FitAddon.FitAddon();
+
     term.open(document.getElementById('terminal'));
     term.loadAddon(fitAddon);
 
@@ -42,8 +55,7 @@ async function main() {
     const socket = await getWebsocket(notebookUrl, token)
 
     socket.addEventListener('open', (ev) => {
-        console.log('open');
-        console.log(ev);
+        console.log('Websocket connection started')
         fitAddon.fit();
     })
 
@@ -51,12 +63,13 @@ async function main() {
         const data = JSON.parse(ev.data);
         if (data[0] == 'stdout') {
             term.write(data[1]);
+        } else {
+            console.log(data);
         }
     })
 
     term.onData((input_string) => {
         socket.send(JSON.stringify(['stdin', input_string]))
-        console.log(input_string);
     })
 
     term.onResize((dims) => {
@@ -64,7 +77,6 @@ async function main() {
     })
 
     window.addEventListener('resize', () => fitAddon.fit())
-
 }
 
 main()
