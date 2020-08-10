@@ -71,7 +71,15 @@ async function attachTerm(term, notebookUrl, token) {
     return new Promise(async (resolve, reject) => {
         term.write('Connecting to server.');
         const connectingProgress = setInterval(() => term.write('.'), 500);
-        const terminadoUrl = await getTerminadoUrl(notebookUrl, token);
+        let terminadoUrl;
+        try {
+            terminadoUrl = await getTerminadoUrl(notebookUrl, token);
+        } catch (e) {
+            term.write(`${COLORS.FG_RED}${e.message}${COLORS.RESET}`)
+            clearInterval(connectingProgress);
+            reject()
+            return
+        }
         const socket = new WebSocket(terminadoUrl);
 
         socket.addEventListener('open', (ev) => {
