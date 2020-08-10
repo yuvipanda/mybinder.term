@@ -1,4 +1,11 @@
 // Don't need $.ready(). Putting <script> at bottom of file has same effect!
+
+// ASCII terminal color codes
+COLORS = {
+    'FG_RED': '\x1b[31m',
+    'FG_GREEN': '\x1b[32m',
+    'RESET': '\x1b[0m'
+}
 /**
  * Return a URL pointing to a websocket handler speaking the terminado protocol.
  *
@@ -61,10 +68,14 @@ async function spawnBinder(binderApiUrl, progressFunc) {
 }
 
 async function attachTerm(term, notebookUrl, token) {
+    term.write('Connecting to server.');
+    const connectingProgress = setInterval(() => term.write('.'), 500);
     const terminadoUrl = await getTerminadoUrl(notebookUrl, token);
     const socket = new WebSocket(terminadoUrl);
 
     socket.addEventListener('open', (ev) => {
+        term.write(`${COLORS.FG_GREEN}Connected!${COLORS.RESET}\r\n`)
+        clearTimeout(connectingProgress);
         console.log('Websocket connection started')
         // Tell remote terminal what size we are
         socket.send(JSON.stringify(['set_size', term.rows, term.cols]));
