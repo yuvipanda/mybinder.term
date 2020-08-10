@@ -28,27 +28,44 @@ async function getTerminadoUrl(notebookUrl, token) {
     return socketUrl;
 }
 
+async function spawnBinder(binderApiUrl, progressFunc) {
+    let es = new EventSource(binderApiUrl);
 
-/**
- * Main function since browsers don't support top-level await
- */
-async function main() {
-    let term = new Terminal();
-    let fitAddon = new window.FitAddon.FitAddon();
+    return new Promise((resolve, reject) => {
+        let phase = null;
+        es.onmessage = (evt) => {
+            let msg = JSON.parse(evt.data);
+            if (msg.phase && msg.phase !== phase) {
+                phase = msg.phase.toLowerCase();
+                console.log("Binder phase: " + phase);
+            }
+            if (msg.message) {
+                console.log("Binder: " + msg.message);
+                progressFunc(msg.phase, msg.message)
+            }
+            switch (msg.phase) {
+                case "failed":
+                    console.error("Failed to build", url, msg);
+                    es.close();
+                    reject(msg)
+                    break;
+                case "ready":
+                    es.close();
+                    resolve(msg);
+                    break;
+                default:
+                    console.log(msg);
+            }
+        };
+    })
+}
 
-    term.open(document.getElementById('terminal'));
-    term.loadAddon(fitAddon);
-
-    // Fetch connection parameters from query params
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const notebookUrl = urlParams.get('notebookUrl');
+async function attachTerm(term, notebookUrl, token) {
     const terminadoUrl = await getTerminadoUrl(notebookUrl, token);
     const socket = new WebSocket(terminadoUrl);
 
     socket.addEventListener('open', (ev) => {
         console.log('Websocket connection started')
-        fitAddon.fit();
     })
 
     socket.addEventListener('message', (ev) => {
@@ -68,7 +85,47 @@ async function main() {
         socket.send(JSON.stringify(['set_size', dims.rows, dims.cols]));
     })
 
+}
+
+function parseURL() {
+}
+/**
+ * Main function since browsers don't support top-level await
+ */
+async function main() {
+    let notebookUrl, token;
+    // Setup xterm
+    let term = new Terminal();
+    let fitAddon = new window.FitAddon.FitAddon();
+    term.open(document.getElementById('terminal'));
+    term.loadAddon(fitAddon);
+    fitAddon.fit();
     window.addEventListener('resize', () => fitAddon.fit())
+
+    // Fetch connection parameters from query params
+    const path = document.location.pathname;
+    if (path.startsWith('/v2/')) {
+        // Launch new binder
+        const binderApiUrl = 'https://mybinder.org/build' + path.replace(/^\/v2/, '');
+        const binderInfo = await spawnBinder(binderApiUrl, (phase, msg) => {
+            term.write(phase + ": " + msg + "\r")
+        });
+        console.log(binderInfo)
+        token = binderInfo.token;
+        notebookUrl = binderInfo.url.replace(/\/$/, '');
+    } else if (path.startsWith('/terminal')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('notebookUrl')) {
+            notebookUrl = urlParams.get('notebookUrl');
+            token = urlParams.get('token')
+        }
+    } else {
+        alert('invalid URL')
+    }
+
+
+    await attachTerm(term, notebookUrl, token);
+    window.history.pushState({}, '', '/terminal?notebookUrl=' + notebookUrl + '&token=' + token)
 }
 
 main()
