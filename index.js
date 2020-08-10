@@ -21,6 +21,7 @@ async function getTerminadoUrl(notebookUrl, token) {
         'Authorization': 'token ' + token
     }
 
+    // TODO: This could fail for two primary reasons: Binder is not running, Network Error
     const resp = await fetch(url, {
         method: 'POST',
         headers: headers
@@ -42,6 +43,7 @@ async function spawnBinder(binderApiUrl, progressFunc) {
         let phase = null;
         es.onmessage = (evt) => {
             let msg = JSON.parse(evt.data);
+            // TODO: This can fail because your image build fails, or launching fails
             if (msg.phase && msg.phase !== phase) {
                 phase = msg.phase.toLowerCase();
                 console.log("Binder phase: " + phase);
@@ -80,6 +82,7 @@ async function attachTerm(term, notebookUrl, token) {
             reject()
             return
         }
+        // TODO: Deal with socket connection failures
         const socket = new WebSocket(terminadoUrl);
 
         socket.addEventListener('open', (ev) => {
@@ -137,6 +140,7 @@ async function main() {
         token = binderInfo.token;
         notebookUrl = binderInfo.url.replace(/\/$/, '');
     } else if (path.startsWith('/terminal')) {
+        // TODO: General parameter validation
         if (urlParams.has('notebookUrl')) {
             notebookUrl = urlParams.get('notebookUrl');
             token = urlParams.get('token')
