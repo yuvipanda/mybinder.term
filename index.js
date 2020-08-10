@@ -9,7 +9,7 @@
  * @param {String} token Authentication token for talking to the notebook server
  */
 async function getTerminadoUrl(notebookUrl, token) {
-    const url = new URL('/api/terminals', notebookUrl);
+    const url = notebookUrl + "/api/terminals";
     const headers = {
         'Authorization': 'token ' + token
     }
@@ -22,7 +22,7 @@ async function getTerminadoUrl(notebookUrl, token) {
     const data = await resp.json();
     const terminalName = data.name;
 
-    let socketUrl = new URL('/terminals/websocket/' + terminalName + '?token=' + token, notebookUrl);
+    let socketUrl = new URL(notebookUrl + '/terminals/websocket/' + terminalName + '?token=' + token);
     // Get ws or wss url from http or https url
     socketUrl.protocol = socketUrl.protocol == 'https:' ? 'wss:' : 'ws:';
     return socketUrl;
