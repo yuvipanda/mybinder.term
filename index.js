@@ -89,8 +89,6 @@ async function attachTerm(term, notebookUrl, token) {
 
 }
 
-function parseURL() {
-}
 /**
  * Main function since browsers don't support top-level await
  */
