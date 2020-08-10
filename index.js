@@ -68,44 +68,48 @@ async function spawnBinder(binderApiUrl, progressFunc) {
 }
 
 async function attachTerm(term, notebookUrl, token) {
-    term.write('Connecting to server.');
-    const connectingProgress = setInterval(() => term.write('.'), 500);
-    const terminadoUrl = await getTerminadoUrl(notebookUrl, token);
-    const socket = new WebSocket(terminadoUrl);
+    return new Promise(async (resolve, reject) => {
+        term.write('Connecting to server.');
+        const connectingProgress = setInterval(() => term.write('.'), 500);
+        const terminadoUrl = await getTerminadoUrl(notebookUrl, token);
+        const socket = new WebSocket(terminadoUrl);
 
-    socket.addEventListener('open', (ev) => {
-        term.write(`${COLORS.FG_GREEN}Connected!${COLORS.RESET}\r\n`)
-        clearTimeout(connectingProgress);
-        console.log('Websocket connection started')
-        // Tell remote terminal what size we are
-        socket.send(JSON.stringify(['set_size', term.rows, term.cols]));
+        socket.addEventListener('open', (ev) => {
+            term.write(`${COLORS.FG_GREEN}Connected!${COLORS.RESET}\r\n`)
+            clearTimeout(connectingProgress);
+            resolve(socket)
+            console.log('Websocket connection started')
+            // Tell remote terminal what size we are
+            socket.send(JSON.stringify(['set_size', term.rows, term.cols]));
+        })
+
+        socket.addEventListener('message', (ev) => {
+            const data = JSON.parse(ev.data);
+            if (data[0] == 'stdout') {
+                term.write(data[1]);
+            } else {
+                console.log(data);
+            }
+        })
+
+        term.onData((input_string) => {
+            socket.send(JSON.stringify(['stdin', input_string]))
+            console.log(input_string)
+        })
+
+        term.onResize((dims) => {
+            socket.send(JSON.stringify(['set_size', dims.rows, dims.cols]));
+        })
     })
-
-    socket.addEventListener('message', (ev) => {
-        const data = JSON.parse(ev.data);
-        if (data[0] == 'stdout') {
-            term.write(data[1]);
-        } else {
-            console.log(data);
-        }
-    })
-
-    term.onData((input_string) => {
-        socket.send(JSON.stringify(['stdin', input_string]))
-    })
-
-    term.onResize((dims) => {
-        socket.send(JSON.stringify(['set_size', dims.rows, dims.cols]));
-    })
-
 }
 
 /**
  * Main function since browsers don't support top-level await
  */
 async function main() {
-    let notebookUrl, token;
-    // Setup xterm
+    let notebookUrl, token, initialCommand;
+    let urlParams = new URLSearchParams(window.location.search);
+    // Setup xtermL
     let term = new Terminal();
     let fitAddon = new window.FitAddon.FitAddon();
     term.open(document.getElementById('terminal'));
@@ -125,7 +129,6 @@ async function main() {
         token = binderInfo.token;
         notebookUrl = binderInfo.url.replace(/\/$/, '');
     } else if (path.startsWith('/terminal')) {
-        const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('notebookUrl')) {
             notebookUrl = urlParams.get('notebookUrl');
             token = urlParams.get('token')
@@ -135,8 +138,21 @@ async function main() {
     }
 
 
-    await attachTerm(term, notebookUrl, token);
-    window.history.pushState({}, '', '/terminal?notebookUrl=' + notebookUrl + '&token=' + token)
+    const websocket = await attachTerm(term, notebookUrl, token);
+
+    if (urlParams.has('initialCommand')) {
+        // FIXME: Injection?
+        websocket.send(JSON.stringify(['stdin', urlParams.get('initialCommand')]));
+    }
+
+    let newUrlParams = new URLSearchParams({
+        'notebookUrl': notebookUrl,
+        'token': token
+    });
+    if (urlParams.has('initialCommand')) {
+        newUrlParams.set('initialCommand', urlParams.get('initialCommand'))
+    }
+    window.history.pushState({}, '', '/terminal?' + newUrlParams.toString())
 }
 
 main()
