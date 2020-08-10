@@ -66,6 +66,8 @@ async function attachTerm(term, notebookUrl, token) {
 
     socket.addEventListener('open', (ev) => {
         console.log('Websocket connection started')
+        // Tell remote terminal what size we are
+        socket.send(JSON.stringify(['set_size', term.rows, term.cols]));
     })
 
     socket.addEventListener('message', (ev) => {
