@@ -3,6 +3,8 @@
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 
+import 'xterm/css/xterm.css';
+import './index.css';
 
 // ASCII terminal color codes
 const COLORS = {
