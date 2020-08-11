@@ -39,7 +39,7 @@ async function getTerminadoUrl (notebookUrl, token) {
 
   const socketUrl = new URL(notebookUrl + '/terminals/websocket/' + terminalName + '?token=' + token)
   // Get ws or wss url from http or https url
-  socketUrl.protocol = socketUrl.protocol == 'https:' ? 'wss:' : 'ws:'
+  socketUrl.protocol = socketUrl.protocol === 'https:' ? 'wss:' : 'ws:'
   return socketUrl
 }
 
@@ -61,7 +61,7 @@ async function spawnBinder (binderApiUrl, progressFunc) {
       }
       switch (msg.phase) {
         case 'failed':
-          console.error('Failed to build', url, msg)
+          console.error('Failed to build', msg)
           es.close()
           reject(msg)
           break
@@ -86,7 +86,7 @@ async function attachTerm (term, notebookUrl, token) {
     } catch (e) {
       term.write(`${COLORS.FG_RED}${e.message}${COLORS.RESET}`)
       clearInterval(connectingProgress)
-      reject()
+      reject(e)
       return
     }
     // TODO: Deal with socket connection failures
@@ -103,16 +103,16 @@ async function attachTerm (term, notebookUrl, token) {
 
     socket.addEventListener('message', (ev) => {
       const data = JSON.parse(ev.data)
-      if (data[0] == 'stdout') {
+      if (data[0] === 'stdout') {
         term.write(data[1])
       } else {
         console.log(data)
       }
     })
 
-    term.onData((input_string) => {
-      socket.send(JSON.stringify(['stdin', input_string]))
-      console.log(input_string)
+    term.onData((inputString) => {
+      socket.send(JSON.stringify(['stdin', inputString]))
+      console.log(inputString)
     })
 
     term.onResize((dims) => {
@@ -177,7 +177,7 @@ function route (context) {
     run(context)
   } else {
     // We should show a form of sorts here
-    alert(invalid)
+    alert('invalid')
   }
 }
 main()
