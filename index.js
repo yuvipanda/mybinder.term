@@ -1,11 +1,12 @@
 // Don't need $.ready(). Putting <script> at bottom of file has same effect!
 
 // ASCII terminal color codes
-COLORS = {
+const COLORS = {
     'FG_RED': '\x1b[31m',
     'FG_GREEN': '\x1b[32m',
     'RESET': '\x1b[0m'
 }
+
 /**
  * Return a URL pointing to a websocket handler speaking the terminado protocol.
  *
