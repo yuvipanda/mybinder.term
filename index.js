@@ -115,13 +115,40 @@ async function attachTerm(term, notebookUrl, token) {
     })
 }
 
+async function build(context) {
+    // Launch new binder
+    const binderApiUrl = 'https://mybinder.org/build' + window.location.pathname.replace(/^\/v2/, '');
+    const binderInfo = await spawnBinder(binderApiUrl, (phase, msg) => {
+        context.term.write(phase + ": " + msg + "\r")
+    });
+    console.log(binderInfo)
+    token = binderInfo.token;
+    notebookUrl = binderInfo.url.replace(/\/$/, '');
+
+    let params = new URLSearchParams(window.location.search);
+    params.set('notebookUrl', notebookUrl);
+    params.set('token', token)
+
+    window.history.pushState({}, '', '/terminal?' + params.toString())
+    route(context);
+}
+
+async function run(context) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const notebookUrl = urlParams.get('notebookUrl');
+    const token = urlParams.get('token')
+
+    const websocket = await attachTerm(context.term, notebookUrl, token);
+
+    if (urlParams.has('initialCommand')) {
+        // FIXME: Injection?
+        websocket.send(JSON.stringify(['stdin', urlParams.get('initialCommand')]));
+    }
+}
 /**
  * Main function since browsers don't support top-level await
  */
 async function main() {
-    let notebookUrl, token, initialCommand;
-    let urlParams = new URLSearchParams(window.location.search);
-    // Setup xtermL
     let term = new Terminal();
     let fitAddon = new window.FitAddon.FitAddon();
     term.open(document.getElementById('terminal'));
@@ -129,43 +156,22 @@ async function main() {
     fitAddon.fit();
     window.addEventListener('resize', () => fitAddon.fit())
 
-    // Fetch connection parameters from query params
-    const path = document.location.pathname;
-    if (path.startsWith('/v2/')) {
-        // Launch new binder
-        const binderApiUrl = 'https://mybinder.org/build' + path.replace(/^\/v2/, '');
-        const binderInfo = await spawnBinder(binderApiUrl, (phase, msg) => {
-            term.write(phase + ": " + msg + "\r")
-        });
-        console.log(binderInfo)
-        token = binderInfo.token;
-        notebookUrl = binderInfo.url.replace(/\/$/, '');
-    } else if (path.startsWith('/terminal')) {
-        // TODO: General parameter validation
-        if (urlParams.has('notebookUrl')) {
-            notebookUrl = urlParams.get('notebookUrl');
-            token = urlParams.get('token')
-        }
-    } else {
-        alert('invalid URL')
-    }
-
-
-    const websocket = await attachTerm(term, notebookUrl, token);
-
-    if (urlParams.has('initialCommand')) {
-        // FIXME: Injection?
-        websocket.send(JSON.stringify(['stdin', urlParams.get('initialCommand')]));
-    }
-
-    let newUrlParams = new URLSearchParams({
-        'notebookUrl': notebookUrl,
-        'token': token
-    });
-    if (urlParams.has('initialCommand')) {
-        newUrlParams.set('initialCommand', urlParams.get('initialCommand'))
-    }
-    window.history.pushState({}, '', '/terminal?' + newUrlParams.toString())
+    route({
+        term: term
+    })
 }
 
+function route(context) {
+    const path = window.location.pathname;
+    if (path.startsWith("/v2/")) {
+        // We gonna build an image maybe
+        build(context)
+    } else if (path.startsWith("/terminal")) {
+        // We gonna show some stuff!
+        run(context)
+    } else {
+        // We should show a form of sorts here
+        alert(invalid);
+    }
+}
 main()
