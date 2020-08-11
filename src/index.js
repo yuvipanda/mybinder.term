@@ -1,5 +1,9 @@
 // Don't need $.ready(). Putting <script> at bottom of file has same effect!
 
+import { Terminal } from 'xterm';
+import { FitAddon } from 'xterm-addon-fit';
+
+
 // ASCII terminal color codes
 const COLORS = {
     'FG_RED': '\x1b[31m',
@@ -150,7 +154,7 @@ async function run(context) {
  */
 async function main() {
     let term = new Terminal();
-    let fitAddon = new window.FitAddon.FitAddon();
+    let fitAddon = new FitAddon();
     term.open(document.getElementById('terminal'));
     term.loadAddon(fitAddon);
     fitAddon.fit();
