@@ -128,8 +128,8 @@ async function build(context) {
         context.term.write(phase + ": " + msg + "\r")
     });
     console.log(binderInfo)
-    token = binderInfo.token;
-    notebookUrl = binderInfo.url.replace(/\/$/, '');
+    const token = binderInfo.token;
+    const notebookUrl = binderInfo.url.replace(/\/$/, '');
 
     let params = new URLSearchParams(window.location.search);
     params.set('notebookUrl', notebookUrl);
