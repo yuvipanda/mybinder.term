@@ -2,9 +2,6 @@
     "sourceMaps": true,
     "presets": [
         [
-            "@babel/preset-react"
-        ],
-        [
             "@babel/preset-env",
             {
                 // from https://github.com/babel/babel/issues/9849#issuecomment-592668815

@@ -1,35 +1,43 @@
 // Don't need $.ready(). Putting <script> at bottom of file has same effect!
 
-import React from 'react'
-import ReactDOM from 'react-dom'
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
+import { Terminal } from 'xterm'
+import { FitAddon } from 'xterm-addon-fit'
 
-import { LaunchBinder } from './LaunchBinder'
-import { Shell } from './Shell'
+import { launchBinder } from './binder'
+import { connectShell } from './shell'
 
-import 'xterm/css/xterm.css'
 import './index.css'
 
-function App () {
-  return (
-    <Router>
-      <Switch>
-        <Route path="/v2">
-          <LaunchBinder binderSpec="gh/yuvipanda/requirements/master" />
-        </Route>
-        <Route path="/terminal" render={routeProps => {
-          const params = new URLSearchParams(routeProps.location.search)
-          return <Shell notebookUrl={params.get('notebookUrl')} token={params.get('token')} />
-        }}>
-        </Route>
-      </Switch>
-    </Router>
-  )
+import 'xterm/css/xterm.css'
+
+export async function makeTerm (element) {
+  const term = new Terminal()
+  const fitAddon = new FitAddon()
+  term.open(element)
+  term.loadAddon(fitAddon)
+  fitAddon.fit()
+  window.addEventListener('resize', () => fitAddon.fit())
+
+  return term
 }
+async function route (term, location) {
+  if (location.pathname.startsWith('/v2/')) {
+    const binderSpec = location.pathname.replace(/^\/v2\//, '')
+    await launchBinder(term, binderSpec)
+  } else if (location.pathname.startsWith('/terminal')) {
+    const urlParams = new URLSearchParams(location.search)
+    const notebookUrl = urlParams.get('notebookUrl')
+    const token = urlParams.get('token')
+    await connectShell(term, notebookUrl, token)
+  }
+}
+
 /**
  * Main function since browsers don't support top-level await
  */
-function main () {
-  ReactDOM.render(<App />, document.getElementById('root'))
+async function main () {
+  const term = await makeTerm(document.getElementById('terminal'))
+  route(term, window.location)
 }
+
 main()

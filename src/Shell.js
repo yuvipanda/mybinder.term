@@ -1,10 +1,4 @@
-// Don't need $.ready(). Putting <script> at bottom of file has same effect!
-
-import React, { useEffect, useState } from 'react'
-
-import 'xterm/css/xterm.css'
 import './index.css'
-import { Term } from './Term'
 
 // ASCII terminal color codes
 const COLORS = {
@@ -88,22 +82,7 @@ async function attachTerm (term, notebookUrl, token) {
   })
 }
 
-export function Shell ({ notebookUrl, token }) {
-  const [term, setTerm] = useState(null)
-
-  useEffect(() => {
-    console.log(term)
-    if (term === null) {
-      return
-    }
-    async function work () {
-      await attachTerm(term, notebookUrl, token)
-    };
-    // if (urlParams.has('initialCommand')) {
-    //     // FIXME: Injection?
-    //     websocket.send(JSON.stringify(['stdin', urlParams.get('initialCommand')]))
-    // }
-    work()
-  }, [term])
-  return <Term setTerm={setTerm} />
+export async function connectShell (term, notebookUrl, token) {
+  console.log(term)
+  await attachTerm(term, notebookUrl, token)
 }

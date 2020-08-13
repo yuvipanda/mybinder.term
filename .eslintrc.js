@@ -4,7 +4,6 @@ module.exports = {
     es2020: true
   },
   extends: [
-    'plugin:react/recommended',
     'standard'
   ],
   parserOptions: {
@@ -15,7 +14,6 @@ module.exports = {
     sourceType: 'module'
   },
   plugins: [
-    'react'
   ],
   rules: {
   }
