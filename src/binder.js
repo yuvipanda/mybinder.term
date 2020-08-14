@@ -1,4 +1,4 @@
-export async function spawnBinder (binderApiUrl, progressFunc) {
+async function spawnBinder (binderApiUrl, progressFunc) {
   const es = new EventSource(binderApiUrl)
 
   return new Promise((resolve, reject) => {
@@ -29,4 +29,26 @@ export async function spawnBinder (binderApiUrl, progressFunc) {
       }
     }
   })
+}
+
+export async function launchBinder ({ term, router, location }) {
+  const binderSpec = location.pathname.replace(/^\/v2\//, '')
+  const binderApiUrl = 'https://mybinder.org/build/' + binderSpec
+
+  term.write(`Launching onto mybinder.org/v2/${binderSpec}\r\n`)
+  const binderInfo = await spawnBinder(binderApiUrl, (phase, msg) => {
+    term.write(phase + ': ' + msg + '\r')
+  })
+
+  console.log(binderInfo)
+  const token = binderInfo.token
+  const notebookUrl = binderInfo.url.replace(/\/$/, '')
+
+  const params = new URLSearchParams(location.search)
+  params.set('notebookUrl', notebookUrl)
+  params.set('token', token)
+
+  const newUrl = '/terminal?' + params.toString()
+  router.goTo(newUrl)
+  console.log('pushed ' + newUrl)
 }

@@ -3,7 +3,7 @@
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 
-import { spawnBinder } from './binder'
+import { launchBinder } from './binder'
 import { Shell } from './shell'
 import { Router } from './router'
 
@@ -32,26 +32,6 @@ async function run ({ location, term }) {
   return async () => {
     await shell.disconnect()
   }
-}
-
-async function launchBinder ({ term, router, location }) {
-  const binderSpec = location.pathname.replace(/^\/v2\//, '')
-  const binderApiUrl = 'https://mybinder.org/build/' + binderSpec
-  const binderInfo = await spawnBinder(binderApiUrl, (phase, msg) => {
-    term.write(phase + ': ' + msg + '\r')
-  })
-
-  console.log(binderInfo)
-  const token = binderInfo.token
-  const notebookUrl = binderInfo.url.replace(/\/$/, '')
-
-  const params = new URLSearchParams(location.search)
-  params.set('notebookUrl', notebookUrl)
-  params.set('token', token)
-
-  const newUrl = '/terminal?' + params.toString()
-  router.goTo(newUrl)
-  console.log('pushed ' + newUrl)
 }
 
 /**
