@@ -13,6 +13,8 @@ export class Shell {
     this.token = token
     this.term = term
     this.socket = null
+
+    this._xterm_listeners = []
   }
 
   async createTerminal () {
@@ -45,9 +47,25 @@ export class Shell {
       this.term.write(`${COLORS.FG_GREEN}Connected!${COLORS.RESET}\r\n`)
       this.onSocketOpen(ev)
     })
+    this.socket.addEventListener('close', (ev) => {
+      console.log('this was fired')
+      this.term.write(`\r\n${COLORS.FG_RED}Connection closed${COLORS.RESET}\r\n`)
+    })
     this.socket.addEventListener('message', this.onSocketMessage.bind(this))
-    this.term.onData(this.onTermInput.bind(this))
-    this.term.onResize((dims) => this.setSize(dims.rows, dims.cols))
+    this._xterm_listeners.push(this.term.onData(this.onTermInput.bind(this)))
+    this._xterm_listeners.push(this.term.onResize((dims) => this.setSize(dims.rows, dims.cols)))
+  }
+
+  async disconnect () {
+    // Disconnect all xterm listeners
+    for (const listener of this._xterm_listeners) {
+      listener.dispose()
+    }
+    this._xterm_listeners = []
+
+    // Close websocket, rather than try to clear all events manually
+    this.socket.close()
+    this.socket = null
   }
 
   onSocketOpen (ev) {

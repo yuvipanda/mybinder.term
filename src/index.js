@@ -3,8 +3,9 @@
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 
-import { launchBinder } from './binder'
+import { spawnBinder } from './binder'
 import { Shell } from './shell'
+import { Router } from './router'
 
 import './index.css'
 
@@ -21,20 +22,37 @@ export async function makeTerm (element) {
   return term
 }
 
-let shell = null
-async function route (term, location) {
-  if (location.pathname.startsWith('/v2/')) {
-    const binderSpec = location.pathname.replace(/^\/v2\//, '')
-    await launchBinder(term, binderSpec)
-  } else if (location.pathname.startsWith('/terminal')) {
-    if (shell === null) {
-      const urlParams = new URLSearchParams(location.search)
-      const notebookUrl = urlParams.get('notebookUrl')
-      const token = urlParams.get('token')
-      shell = new Shell(notebookUrl, token, term)
-      await shell.connect()
-    }
+async function run ({ term }) {
+  const location = window.location
+  const urlParams = new URLSearchParams(location.search)
+  const notebookUrl = urlParams.get('notebookUrl')
+  const token = urlParams.get('token')
+  const shell = new Shell(notebookUrl, token, term)
+
+  await shell.connect()
+  return async () => {
+    await shell.disconnect()
   }
+}
+
+async function launchBinder ({ term, router }) {
+  const binderSpec = location.pathname.replace(/^\/v2\//, '')
+  const binderApiUrl = 'https://mybinder.org/build/' + binderSpec
+  const binderInfo = await spawnBinder(binderApiUrl, (phase, msg) => {
+    term.write(phase + ': ' + msg + '\r')
+  })
+
+  console.log(binderInfo)
+  const token = binderInfo.token
+  const notebookUrl = binderInfo.url.replace(/\/$/, '')
+
+  const params = new URLSearchParams(window.location.search)
+  params.set('notebookUrl', notebookUrl)
+  params.set('token', token)
+
+  const newUrl = '/terminal?' + params.toString()
+  router.goTo(newUrl)
+  console.log('pushed ' + newUrl)
 }
 
 /**
@@ -42,11 +60,19 @@ async function route (term, location) {
  */
 async function main () {
   const term = await makeTerm(document.getElementById('terminal'))
-  route(term, window.location)
 
-  window.addEventListener('popstate', (ev) => {
-    route(term, window.location)
-  })
+  const router = new Router([
+    {
+      match: /^\/terminal\/?/,
+      callback: run
+    },
+    {
+      match: /^\/v2\//,
+      callback: launchBinder
+    }
+  ], { term: term })
+
+  await router.route()
 }
 
 main()
