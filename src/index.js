@@ -22,8 +22,7 @@ export async function makeTerm (element) {
   return term
 }
 
-async function run ({ term }) {
-  const location = window.location
+async function run ({ location, term }) {
   const urlParams = new URLSearchParams(location.search)
   const notebookUrl = urlParams.get('notebookUrl')
   const token = urlParams.get('token')
@@ -35,7 +34,7 @@ async function run ({ term }) {
   }
 }
 
-async function launchBinder ({ term, router }) {
+async function launchBinder ({ term, router, location }) {
   const binderSpec = location.pathname.replace(/^\/v2\//, '')
   const binderApiUrl = 'https://mybinder.org/build/' + binderSpec
   const binderInfo = await spawnBinder(binderApiUrl, (phase, msg) => {
@@ -46,7 +45,7 @@ async function launchBinder ({ term, router }) {
   const token = binderInfo.token
   const notebookUrl = binderInfo.url.replace(/\/$/, '')
 
-  const params = new URLSearchParams(window.location.search)
+  const params = new URLSearchParams(location.search)
   params.set('notebookUrl', notebookUrl)
   params.set('token', token)
 

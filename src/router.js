@@ -42,7 +42,8 @@ export class Router {
       if (location.pathname.match(route.match)) {
         this.cleanupFunc = await route.callback({
           ...this.context,
-          router: this
+          router: this,
+          location: location
         })
         break
       }
