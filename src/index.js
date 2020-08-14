@@ -6,12 +6,13 @@ import { FitAddon } from 'xterm-addon-fit'
 import { launchBinder } from './binder'
 import { Shell } from './shell'
 import { Router } from './router'
+import { printMotd } from './motd'
 
 import './index.css'
 
 import 'xterm/css/xterm.css'
 
-export async function makeTerm (element) {
+function makeTerm (element) {
   const term = new Terminal()
   const fitAddon = new FitAddon()
   term.open(element)
@@ -38,8 +39,8 @@ async function run ({ location, term }) {
  * Main function since browsers don't support top-level await
  */
 async function main () {
-  const term = await makeTerm(document.getElementById('terminal'))
-
+  const term = makeTerm(document.getElementById('terminal'))
+  printMotd(term)
   const router = new Router([
     {
       match: /^\/terminal\/?/,

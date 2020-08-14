@@ -39,7 +39,7 @@ export class Shell {
 
     this.socket = new WebSocket(socketUrl)
 
-    this.term.write('Connecting to server.')
+    this.term.write('Connecting to notebook server.')
     const connectingProgress = setInterval(() => this.term.write('.'), 500)
 
     this.socket.addEventListener('open', (ev) => {
