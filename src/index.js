@@ -2,6 +2,7 @@
 
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
+import { WebLinksAddon } from 'xterm-addon-web-links'
 
 import { launchBinder } from './binder'
 import { Shell } from './shell'
@@ -15,8 +16,11 @@ import 'xterm/css/xterm.css'
 function makeTerm (element) {
   const term = new Terminal()
   const fitAddon = new FitAddon()
+  const weblinksAddon = new WebLinksAddon()
+
   term.open(element)
   term.loadAddon(fitAddon)
+  term.loadAddon(weblinksAddon)
   fitAddon.fit()
   window.addEventListener('resize', () => fitAddon.fit())
 
