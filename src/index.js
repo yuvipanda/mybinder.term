@@ -4,7 +4,7 @@ import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 
 import { launchBinder } from './binder'
-import { connectShell } from './shell'
+import { Shell } from './shell'
 
 import './index.css'
 
@@ -20,15 +20,20 @@ export async function makeTerm (element) {
 
   return term
 }
+
+let shell = null
 async function route (term, location) {
   if (location.pathname.startsWith('/v2/')) {
     const binderSpec = location.pathname.replace(/^\/v2\//, '')
     await launchBinder(term, binderSpec)
   } else if (location.pathname.startsWith('/terminal')) {
-    const urlParams = new URLSearchParams(location.search)
-    const notebookUrl = urlParams.get('notebookUrl')
-    const token = urlParams.get('token')
-    await connectShell(term, notebookUrl, token)
+    if (shell === null) {
+      const urlParams = new URLSearchParams(location.search)
+      const notebookUrl = urlParams.get('notebookUrl')
+      const token = urlParams.get('token')
+      shell = new Shell(notebookUrl, token, term)
+      await shell.connect()
+    }
   }
 }
 
@@ -38,6 +43,10 @@ async function route (term, location) {
 async function main () {
   const term = await makeTerm(document.getElementById('terminal'))
   route(term, window.location)
+
+  window.addEventListener('popstate', (ev) => {
+    route(term, window.location)
+  })
 }
 
 main()
