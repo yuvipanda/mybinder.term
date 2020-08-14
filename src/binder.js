@@ -35,7 +35,10 @@ export async function launchBinder ({ term, router, location }) {
   const binderSpec = location.pathname.replace(/^\/v2\//, '')
   const binderApiUrl = 'https://mybinder.org/build/' + binderSpec
 
-  term.write(`Launching onto mybinder.org/v2/${binderSpec}\r\n`)
+  const myBinderURL = 'https://mybinder.org/v2/' + binderSpec
+
+  term.write(`Launch into a Jupyter Notebook instead: ${myBinderURL}\r\n`)
+
   const binderInfo = await spawnBinder(binderApiUrl, (phase, msg) => {
     term.write(phase + ': ' + msg + '\r')
   })

@@ -1,11 +1,5 @@
 import './index.css'
-
-// ASCII terminal color codes
-const COLORS = {
-  FG_RED: '\x1b[31m',
-  FG_GREEN: '\x1b[32m',
-  RESET: '\x1b[0m'
-}
+import c from 'ansi-colors'
 
 export class Shell {
   constructor (notebookUrl, token, term) {
@@ -34,7 +28,17 @@ export class Shell {
   }
 
   async connect () {
-    const terminalName = await this.createTerminal()
+    let terminalName
+    try {
+      terminalName = await this.createTerminal()
+    } catch (e) {
+      if (e instanceof TypeError) {
+        this.term.write(
+          c.red.bold('\r\nCould not connect to mybinder.org. Maybe your binder session has expired?\r\n')
+        )
+      }
+      throw (e)
+    }
     const socketUrl = this.notebookUrl.replace(/^http(s)?:\/\//, 'ws$1://') + '/terminals/websocket/' + terminalName + '?token=' + this.token
 
     this.socket = new WebSocket(socketUrl)
@@ -44,7 +48,7 @@ export class Shell {
 
     this.socket.addEventListener('open', (ev) => {
       clearInterval(connectingProgress)
-      this.term.write(`${COLORS.FG_GREEN}Connected!${COLORS.RESET}\r\n\r\n`)
+      this.term.write(c.green('Connected!\r\n\r\n'))
       this.term.write(`Share this session with others by sending the following URL: \r\n${window.location.href}\r\n`)
       this.term.write('Consider using tmux, screen or byobu to collaborate in realtime with others!\r\n')
       this.term.write('\r\n')
@@ -52,7 +56,7 @@ export class Shell {
     })
     this.socket.addEventListener('close', (ev) => {
       console.log('this was fired')
-      this.term.write(`\r\n${COLORS.FG_RED}Connection closed${COLORS.RESET}\r\n`)
+      this.term.write(c.red('\r\nConnection to terminal closed\r\n'))
     })
     this.socket.addEventListener('message', this.onSocketMessage.bind(this))
     this._xterm_listeners.push(this.term.onData(this.onTermInput.bind(this)))
