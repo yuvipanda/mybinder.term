@@ -50,6 +50,11 @@ header nav a.disabled {
     color:grey;
 }
 
+header nav a.copying {
+    pointer-events: none;
+    text-decoration: none;
+}
+
 
 #terminal {
     position: absolute;

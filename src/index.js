@@ -16,6 +16,27 @@ import './logo-notext.svg'
 
 import 'xterm/css/xterm.css'
 
+function setupCopying () {
+  const links = document.querySelectorAll('a.copyable')
+  function onClick (ev) {
+    const a = ev.target
+    navigator.clipboard.writeText(a.getAttribute('href'))
+    const curHTML = a.innerHTML
+    setTimeout(() => {
+      a.innerHTML = curHTML
+      a.classList.remove('copying')
+    }, 1000)
+
+    a.classList.add('copying')
+    a.innerHTML = 'Link copied!'
+    ev.preventDefault()
+    return false
+  }
+  for (const link of links) {
+    link.addEventListener('click', onClick)
+  }
+}
+
 function setShareLink (kind, href) {
   const a = document.getElementById('link-' + kind)
   if (href === null) {
@@ -92,6 +113,7 @@ async function launchBinder ({ term, router, location }) {
 async function main () {
   const term = makeTerm(document.getElementById('terminal'))
   printMotd(term)
+  setupCopying()
   const router = new Router([
     {
       match: /^\/terminal\/?/,
