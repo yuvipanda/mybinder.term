@@ -50,8 +50,7 @@ export class Shell {
     this.socket.addEventListener('open', (ev) => {
       clearInterval(connectingProgress)
       this.term.write(c.green('Connected!\r\n\r\n'))
-      this.term.write(`Share this session with others by sending the following URL: \r\n${window.location.href}\r\n`)
-      this.term.write('Consider using tmux, screen or byobu to collaborate in realtime with others!\r\n')
+      this.term.write('Consider using tmux, screen or byobu to collaborate in realtime with others in the same session!\r\n')
       this.term.write('\r\n')
       this.onSocketOpen(ev)
     })
