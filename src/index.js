@@ -4,7 +4,7 @@ import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebLinksAddon } from 'xterm-addon-web-links'
 
-import { launchBinder } from './binder'
+import { spawnBinder } from './binder'
 import { Shell } from './shell'
 import { Router } from './router'
 import { printMotd } from './motd'
@@ -15,6 +15,17 @@ import 'typeface-jetbrains-mono'
 import './logo-notext.svg'
 
 import 'xterm/css/xterm.css'
+
+function setShareLink (kind, href) {
+  const a = document.getElementById('link-' + kind)
+  if (href === null) {
+    a.classList.add('disabled')
+  } else {
+    a.classList.remove('disabled')
+  }
+
+  a.setAttribute('href', href)
+}
 
 function makeTerm (element) {
   const term = new Terminal({
@@ -37,12 +48,42 @@ async function run ({ location, term }) {
   const urlParams = new URLSearchParams(location.search)
   const notebookUrl = urlParams.get('notebookUrl')
   const token = urlParams.get('token')
-  const shell = new Shell(notebookUrl, token, term)
+  const binderSpec = urlParams.get('binderSpec')
+  const shell = new Shell(notebookUrl, token, binderSpec, term)
 
   await shell.connect()
+
+  setShareLink('new-binder', location.origin + '/v2/' + shell.binderSpec)
+  setShareLink('current-binder', location.href)
+
   return async () => {
+    setShareLink('current-binder', null)
     await shell.disconnect()
   }
+}
+
+async function launchBinder ({ term, router, location }) {
+  const binderSpec = location.pathname.replace(/^\/v2\//, '')
+  const binderApiUrl = 'https://mybinder.org/build/' + binderSpec
+
+  setShareLink('new-binder', location.origin + '/v2/' + binderSpec)
+
+  const binderInfo = await spawnBinder(binderApiUrl, (phase, msg) => {
+    term.write(phase + ': ' + msg + '\r')
+  })
+
+  console.log(binderInfo)
+  const token = binderInfo.token
+  const notebookUrl = binderInfo.url.replace(/\/$/, '')
+
+  const params = new URLSearchParams(location.search)
+  params.set('notebookUrl', notebookUrl)
+  params.set('token', token)
+  params.set('binderSpec', binderSpec)
+
+  const newUrl = '/terminal?' + params.toString()
+  router.goTo(newUrl)
+  console.log('pushed ' + newUrl)
 }
 
 /**

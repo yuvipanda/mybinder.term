@@ -1,4 +1,4 @@
-async function spawnBinder (binderApiUrl, progressFunc) {
+export async function spawnBinder (binderApiUrl, progressFunc) {
   const es = new EventSource(binderApiUrl)
 
   return new Promise((resolve, reject) => {
@@ -29,29 +29,4 @@ async function spawnBinder (binderApiUrl, progressFunc) {
       }
     }
   })
-}
-
-export async function launchBinder ({ term, router, location }) {
-  const binderSpec = location.pathname.replace(/^\/v2\//, '')
-  const binderApiUrl = 'https://mybinder.org/build/' + binderSpec
-
-  const myBinderURL = 'https://mybinder.org/v2/' + binderSpec
-
-  term.write(`Launch into a Jupyter Notebook instead: ${myBinderURL}\r\n`)
-
-  const binderInfo = await spawnBinder(binderApiUrl, (phase, msg) => {
-    term.write(phase + ': ' + msg + '\r')
-  })
-
-  console.log(binderInfo)
-  const token = binderInfo.token
-  const notebookUrl = binderInfo.url.replace(/\/$/, '')
-
-  const params = new URLSearchParams(location.search)
-  params.set('notebookUrl', notebookUrl)
-  params.set('token', token)
-
-  const newUrl = '/terminal?' + params.toString()
-  router.goTo(newUrl)
-  console.log('pushed ' + newUrl)
 }

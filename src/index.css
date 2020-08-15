@@ -37,14 +37,17 @@ header nav {
     padding: 4px;
 }
 
-header nav button {
+header nav a {
     background-color: black;
-    color: white;
+    color: rgb(209, 243, 255);
     border-radius: 0px;
-    border-width: 0px 0px 0px 1px;
-    border-color: grey;
     font-family: inherit;
-    font-size: inherit
+    font-size: inherit;
+    padding: 0px 4px;
+}
+
+header nav a.disabled {
+    color:grey;
 }
 
 

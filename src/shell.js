@@ -2,10 +2,11 @@ import './index.css'
 import c from 'ansi-colors'
 
 export class Shell {
-  constructor (notebookUrl, token, term) {
+  constructor (notebookUrl, token, binderSpec, term) {
     this.notebookUrl = notebookUrl
     this.token = token
     this.term = term
+    this.binderSpec = binderSpec
     this.socket = null
 
     this._xterm_listeners = []
