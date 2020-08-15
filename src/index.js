@@ -17,7 +17,8 @@ import 'xterm/css/xterm.css'
 
 function makeTerm (element) {
   const term = new Terminal({
-    fontFamily: 'JetBrains Mono'
+    fontFamily: 'JetBrains Mono',
+    fontSize: 14
   })
   const fitAddon = new FitAddon()
   const weblinksAddon = new WebLinksAddon()
