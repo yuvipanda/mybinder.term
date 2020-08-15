@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "ansi-colors": "^4.1.1",
+    "typeface-jetbrains-mono": "^2.0.0",
     "xterm": "^4.8.1",
     "xterm-addon-attach": "^0.6.0",
     "xterm-addon-fit": "^0.4.0",
@@ -21,6 +22,8 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
+    "file-loader": "^6.0.0",
+    "reset-css": "^5.0.1",
     "style-loader": "^1.2.1",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",

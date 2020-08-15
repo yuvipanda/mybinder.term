@@ -9,12 +9,16 @@ import { Shell } from './shell'
 import { Router } from './router'
 import { printMotd } from './motd'
 
+import 'reset-css'
 import './index.css'
+import 'typeface-jetbrains-mono'
 
 import 'xterm/css/xterm.css'
 
 function makeTerm (element) {
-  const term = new Terminal()
+  const term = new Terminal({
+    fontFamily: 'JetBrains Mono'
+  })
   const fitAddon = new FitAddon()
   const weblinksAddon = new WebLinksAddon()
 
