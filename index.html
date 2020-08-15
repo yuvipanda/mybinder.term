@@ -3,6 +3,10 @@
 <head>
     <!-- Required so page loaded under /v2/gh/... can find assets-->
     <base href="/" />
+
+    <!-- Load CSS separately for faster stlye loading-->
+    <!-- This also prevents weird issues caused by xterm loading before webfonts-->
+    <link rel="stylesheet" href="/main.css">
 </head>
 <body>
     <header id="header">

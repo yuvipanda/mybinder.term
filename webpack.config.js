@@ -1,10 +1,12 @@
 const CopyPlugin = require('copy-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
   devServer: {
     historyApiFallback: true
   },
   plugins: [
+    new MiniCssExtractPlugin(),
     new CopyPlugin({
       patterns: [
         { from: 'index.html', to: 'index.html' }
@@ -16,7 +18,7 @@ module.exports = {
       {
         test: /\.css$/,
         use: [
-          'style-loader',
+          MiniCssExtractPlugin.loader,
           'css-loader'
         ]
       },
