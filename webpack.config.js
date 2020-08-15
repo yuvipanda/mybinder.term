@@ -1,10 +1,16 @@
+const CopyPlugin = require('copy-webpack-plugin')
+
 module.exports = {
   devServer: {
     historyApiFallback: true
   },
-  output: {
-    publicPath: '/dist/'
-  },
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        { from: 'index.html', to: 'index.html' }
+      ]
+    })
+  ],
   module: {
     rules: [
       {
