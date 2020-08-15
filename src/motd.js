@@ -17,7 +17,8 @@ const MYBINDER_LOGO = `
 `
 
 const WELCOME = `
-Welcome to the MyBinder.org Terminal version!
+Welcome to the MyBinder Terminal - all the goodness of mybinder.org, in pure text-only form.
+File issues and contribute to the code at  https://github.com/yuvipanda/mybinder.term
 `
 export function printMotd (term) {
   const MOTD = MYBINDER_LOGO + WELCOME
