@@ -12,6 +12,7 @@ import { printMotd } from './motd'
 import 'reset-css'
 import './index.css'
 import 'typeface-jetbrains-mono'
+import './logo-notext.svg'
 
 import 'xterm/css/xterm.css'
 

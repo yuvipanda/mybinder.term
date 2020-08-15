@@ -1,9 +1,56 @@
+:root {
+    --header-height: 32px;
+}
 body {
     background-color: black;
+    color: white;
 }
+
+#header {
+    height: var(--header-height);
+    font-size: 14px;
+    display: flex;
+    text-transform: lowercase;
+    align-items: center;
+    font-family: 'JetBrains Mono';
+}
+
+#logo {
+    flex-grow: 1;
+    margin-left: 4px;
+    /* Use logo without text on top left*/
+    background-image: url('logo-notext.svg');
+    background-position: left;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-left: 24px;
+
+    /* Title should be center of header */
+    height: 100%;
+    display: flex;
+    align-items: center;
+
+}
+
+header nav {
+    display: flex;
+    padding: 4px;
+}
+
+header nav button {
+    background-color: black;
+    color: white;
+    border-radius: 0px;
+    border-width: 0px 0px 0px 1px;
+    border-color: grey;
+    font-family: inherit;
+    font-size: inherit
+}
+
+
 #terminal {
     position: absolute;
-    top: 0px;
+    top: var(--header-height);
     bottom: 0px;
     left: 0px;
     right: 0px;
