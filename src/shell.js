@@ -7,6 +7,7 @@ export class Shell {
     this.token = token
     this.term = term
     this.binderSpec = binderSpec
+    this.newSessionUrl = window.location.origin + '/v2/' + binderSpec
     this.socket = null
 
     this._xterm_listeners = []
@@ -35,7 +36,8 @@ export class Shell {
     } catch (e) {
       if (e instanceof TypeError) {
         this.term.write(
-          c.red.bold('\r\nCould not connect to mybinder.org. Maybe your binder session has expired?\r\n')
+          c.red('\r\nCould not connect to mybinder.org. Maybe your binder session has expired?\r\n') +
+          c.green(`Try ${this.newSessionUrl} to start another binder session with the same repository`)
         )
       }
       throw (e)

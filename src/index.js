@@ -74,7 +74,7 @@ async function run ({ location, term }) {
 
   await shell.connect()
 
-  setShareLink('new-binder', location.origin + '/v2/' + shell.binderSpec)
+  setShareLink('new-binder', shell.newSessionUrl)
   setShareLink('current-binder', location.href)
 
   return async () => {
