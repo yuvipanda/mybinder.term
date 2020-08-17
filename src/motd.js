@@ -25,4 +25,6 @@ export function printMotd (term) {
   for (const l of MOTD.trim().split('\n')) {
     term.write(l + '\r\n')
   }
+  // Add newline after MOTD
+  term.write('\r\n')
 }
