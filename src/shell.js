@@ -48,14 +48,6 @@ export class Shell {
 
     this.term.write('Connecting to notebook server.')
     const connectingProgress = setInterval(() => this.term.write('.'), 500)
-
-    this.socket.addEventListener('open', (ev) => {
-      clearInterval(connectingProgress)
-      this.term.write(c.green('Connected!\r\n\r\n'))
-      this.term.write('Consider using tmux, screen or byobu to collaborate in realtime with others in the same session!\r\n')
-      this.term.write('\r\n')
-      this.onSocketOpen(ev)
-    })
     this.socket.addEventListener('close', (ev) => {
       console.log('this was fired')
       this.term.write(c.red('\r\nConnection to terminal closed\r\n'))
@@ -63,6 +55,18 @@ export class Shell {
     this.socket.addEventListener('message', this.onSocketMessage.bind(this))
     this._xterm_listeners.push(this.term.onData(this.onTermInput.bind(this)))
     this._xterm_listeners.push(this.term.onResize((dims) => this.setSize(dims.rows, dims.cols)))
+
+    // Only count as connected once websocket has been established
+    return new Promise((resolve, reject) => {
+      this.socket.addEventListener('open', (ev) => {
+        clearInterval(connectingProgress)
+        this.term.write(c.green('Connected!\r\n\r\n'))
+        this.term.write('Consider using tmux, screen or byobu to collaborate in realtime with others in the same session!\r\n')
+        this.term.write('\r\n')
+        this.onSocketOpen(ev)
+        resolve()
+      })
+    })
   }
 
   async disconnect () {
