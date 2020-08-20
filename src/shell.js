@@ -101,4 +101,8 @@ export class Shell {
   setSize (rows, cols) {
     this.socket.send(JSON.stringify(['set_size', rows, cols]))
   }
+
+  sendKeys (keys) {
+    this.socket.send(JSON.stringify(['stdin', keys]))
+  }
 }

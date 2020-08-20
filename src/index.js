@@ -70,9 +70,14 @@ async function run ({ location, term }) {
   const notebookUrl = urlParams.get('notebookUrl')
   const token = urlParams.get('token')
   const binderSpec = urlParams.get('binderSpec')
+  const initialKeys = urlParams.get('initialKeys')
   const shell = new Shell(notebookUrl, token, binderSpec, term)
 
   await shell.connect()
+
+  if (initialKeys) {
+    shell.sendKeys(initialKeys)
+  }
 
   setShareLink('new-binder', shell.newSessionUrl)
   setShareLink('current-binder', location.href)
